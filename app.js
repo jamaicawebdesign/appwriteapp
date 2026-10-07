@@ -1,6 +1,6 @@
 /* Appwrite configuration */
 const APPWRITE_ENDPOINT = 'https://fra.cloud.appwrite.io/v1';
-const APPWRITE_PROJECT_ID = 'Y6ac5a6a70015601de61a';
+const APPWRITE_PROJECT_ID = '6ac5a6a70015601de61a';
 
 const { Client, Account, ID } = Appwrite;
 const client = new Client().setEndpoint(APPWRITE_ENDPOINT).setProject(APPWRITE_PROJECT_ID);
@@ -90,7 +90,7 @@ $('authForm').addEventListener('submit', async (event)=>{
   if(mode==='signup' && password !== confirm){ showMessage('The passwords do not match.'); return; }
   setLoading(true);
   try{
-    if(APPWRITE_PROJECT_ID === 'Y6ac5a6a70015601de61a') throw new Error('Add your Appwrite Project ID in app.js before using authentication.');
+    if(APPWRITE_PROJECT_ID === '6ac5a6a70015601de61a') throw new Error('Add your Appwrite Project ID in app.js before using authentication.');
     if(mode==='signup') await signUp(name,email,password); else await login(email,password);
     const user=await account.get();
     renderAccount(user);
@@ -103,6 +103,6 @@ $('logoutButton').addEventListener('click', async()=>{
 });
 
 (async()=>{
-  if(APPWRITE_PROJECT_ID === 'Y6ac5a6a70015601de61a') return;
+  if(APPWRITE_PROJECT_ID === '6ac5a6a70015601de61a') return;
   try{ const user=await account.get(); renderAccount(user); } catch(_) { renderLoggedOut(); }
 })();
