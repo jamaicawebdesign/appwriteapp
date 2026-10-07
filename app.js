@@ -526,14 +526,17 @@ if ($("authForm")) {
                     user
                 );
 
-                renderAccount(user);
+               renderAccount(user);
 
-                showMessage(
-                    mode === "signup"
-                        ? "Your account has been created successfully."
-                        : "Login successful.",
-                    "success"
-                );
+showMessage(
+    mode === "signup"
+        ? "Your account has been created successfully."
+        : "Login successful.",
+    "success"
+);
+               window.location.href = "dashboard.html";
+
+
 
             } catch (error) {
 
@@ -592,23 +595,19 @@ async function checkExistingSession() {
             "Checking Appwrite authentication session..."
         );
 
-        const user =
-            await getCurrentUser();
+        const user = await getCurrentUser();
 
         console.log(
             "Existing session found:",
             user
         );
 
-        renderAccount(user);
+        // Already authenticated → dashboard
+        window.location.href = "dashboard.html";
 
     } catch (error) {
 
-        /*
-         * No active session is normal.
-         * Don't show an error when the user is simply logged out.
-         */
-
+        // No active session is normal.
         console.log(
             "No active Appwrite session."
         );
@@ -616,6 +615,7 @@ async function checkExistingSession() {
         renderLoggedOut();
     }
 }
+
 
 /* =========================================================
    START APPLICATION
