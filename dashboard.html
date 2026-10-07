@@ -366,7 +366,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/appwrite"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/appwrite"></script>
 
 <script>
     console.log("Dashboard JavaScript starting...");
@@ -377,135 +376,78 @@
     const APPWRITE_PROJECT_ID =
         "6ac5a6a70015601de61a";
 
-    // Check that Appwrite loaded
-    if (typeof Appwrite === "undefined") {
+    const {
+        Client,
+        Account
+    } = Appwrite;
 
-        console.error(
-            "Appwrite SDK could not be loaded."
-        );
+    const client = new Client();
 
-        document.getElementById("loading").textContent =
-            "Appwrite could not be loaded. Check your internet connection and refresh.";
+    client
+        .setEndpoint(APPWRITE_ENDPOINT)
+        .setProject(APPWRITE_PROJECT_ID);
 
-    } else {
+    const account = new Account(client);
 
-        console.log(
-            "Appwrite SDK loaded successfully."
-        );
+    async function loadDashboard() {
 
-        const client = new Appwrite.Client();
+        console.log("Checking Appwrite session...");
 
-        client
-            .setEndpoint(APPWRITE_ENDPOINT)
-            .setProject(APPWRITE_PROJECT_ID);
+        try {
 
-        const account =
-            new Appwrite.Account(client);
+            const user = await account.get();
 
-        async function loadDashboard() {
+            console.log("Authenticated user:", user);
 
-            console.log(
-                "Checking authentication session..."
+            const name = user.name || "User";
+
+            document.getElementById("userName").textContent =
+                name;
+
+            document.getElementById("profileName").textContent =
+                name;
+
+            document.getElementById("userEmail").textContent =
+                user.email;
+
+            document.getElementById("userId").textContent =
+                user.$id;
+
+            document.getElementById("avatar").textContent =
+                name.trim().charAt(0).toUpperCase();
+
+            document.getElementById("loading").hidden = true;
+
+            document.getElementById("dashboard").hidden = false;
+
+        } catch (error) {
+
+            console.error(
+                "Dashboard authentication error:",
+                error
             );
+
+            window.location.replace("index.html");
+        }
+    }
+
+    document
+        .getElementById("logoutButton")
+        .addEventListener("click", async () => {
 
             try {
 
-                const user =
-                    await account.get();
+                await account.deleteSession("current");
 
-                console.log(
-                    "Logged-in user:",
-                    user
-                );
-
-                const name =
-                    user.name || "User";
-
-                const email =
-                    user.email || "";
-
-                document
-                    .getElementById("userName")
-                    .textContent = name;
-
-                document
-                    .getElementById("profileName")
-                    .textContent = name;
-
-                document
-                    .getElementById("userEmail")
-                    .textContent = email;
-
-                document
-                    .getElementById("userId")
-                    .textContent = user.$id;
-
-                document
-                    .getElementById("avatar")
-                    .textContent =
-                    name
-                        .trim()
-                        .charAt(0)
-                        .toUpperCase() || "U";
-
-                document
-                    .getElementById("loading")
-                    .hidden = true;
-
-                document
-                    .getElementById("dashboard")
-                    .hidden = false;
+                window.location.replace("index.html");
 
             } catch (error) {
 
-                console.error(
-                    "Appwrite authentication error:",
-                    error
-                );
-
-                document
-                    .getElementById("loading")
-                    .textContent =
-                    "You are not logged in. Redirecting...";
-
-                setTimeout(() => {
-
-                    window.location.replace(
-                        "index.html"
-                    );
-
-                }, 1000);
+                console.error("Logout error:", error);
             }
-        }
+        });
 
-        document
-            .getElementById("logoutButton")
-            .addEventListener(
-                "click",
-                async () => {
-
-                    try {
-
-                        await account.deleteSession(
-                            "current"
-                        );
-
-                        window.location.replace(
-                            "index.html"
-                        );
-
-                    } catch (error) {
-
-                        console.error(
-                            "Logout error:",
-                            error
-                        );
-                    }
-                }
-            );
-
-        loadDashboard();
-    }
+    loadDashboard();
 </script>
 
 
