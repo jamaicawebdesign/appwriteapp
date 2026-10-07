@@ -90,7 +90,7 @@ $('authForm').addEventListener('submit', async (event)=>{
   if(mode==='signup' && password !== confirm){ showMessage('The passwords do not match.'); return; }
   setLoading(true);
   try{
-    if(APPWRITE_PROJECT_ID === 'YOUR_PROJECT_ID') throw new Error('Add your Appwrite Project ID in app.js before using authentication.');
+    if(APPWRITE_PROJECT_ID === 'Y6ac5a6a70015601de61a') throw new Error('Add your Appwrite Project ID in app.js before using authentication.');
     if(mode==='signup') await signUp(name,email,password); else await login(email,password);
     const user=await account.get();
     renderAccount(user);
@@ -103,6 +103,6 @@ $('logoutButton').addEventListener('click', async()=>{
 });
 
 (async()=>{
-  if(APPWRITE_PROJECT_ID === 'YOUR_PROJECT_ID') return;
+  if(APPWRITE_PROJECT_ID === 'Y6ac5a6a70015601de61a') return;
   try{ const user=await account.get(); renderAccount(user); } catch(_) { renderLoggedOut(); }
 })();
