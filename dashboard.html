@@ -215,6 +215,73 @@
             font-size: 14px;
         }
 
+        .loading-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 28px;
+            background: rgba(255,255,255,.94);
+            border: 1px solid #e5e9f2;
+            border-radius: 18px;
+            box-shadow: 0 15px 40px rgba(16,24,40,.06);
+        }
+
+        .loading-card span {
+            color: #667085;
+            font-size: 12px;
+        }
+
+        .loading-spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #e5e7eb;
+            border-top-color: #4f46e5;
+            border-radius: 50%;
+            animation: dashboardSpin .7s linear infinite;
+        }
+
+        .auth-error {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+        }
+
+        .error-card {
+            width: min(100%, 460px);
+            padding: 28px;
+            text-align: center;
+            background: white;
+            border: 1px solid #fecdca;
+            border-radius: 18px;
+            box-shadow: 0 15px 40px rgba(16,24,40,.08);
+        }
+
+        .error-card strong {
+            font-size: 18px;
+        }
+
+        .error-card p {
+            color: #667085;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .error-card button {
+            border: 0;
+            border-radius: 10px;
+            padding: 11px 18px;
+            background: #111827;
+            color: white;
+            font: 600 13px Inter, sans-serif;
+            cursor: pointer;
+        }
+
+        @keyframes dashboardSpin {
+            to { transform: rotate(360deg); }
+        }
+
         @media (max-width: 700px) {
             .dashboard {
                 padding: 24px 0;
@@ -248,7 +315,19 @@
 <body>
 
     <div id="loading" class="loading">
-        Loading your dashboard...
+        <div class="loading-card">
+            <div class="loading-spinner" aria-hidden="true"></div>
+            <strong>Loading your dashboard...</strong>
+            <span id="loadingStatus">Checking your Appwrite session.</span>
+        </div>
+    </div>
+
+    <div id="authError" class="auth-error" hidden>
+        <div class="error-card">
+            <strong>We couldn't load your dashboard.</strong>
+            <p id="authErrorMessage">Your session could not be verified.</p>
+            <button id="returnLogin" type="button">Return to login</button>
+        </div>
     </div>
 
     <main id="dashboard" class="dashboard" hidden>
@@ -364,7 +443,7 @@
 
    
 
-<script src="https://cdn.jsdelivr.net/npm/appwrite"></script>
+<script src="https://cdn.jsdelivr.net/npm/appwrite@28.1.0"></script>
 
 
 <script>
@@ -389,61 +468,84 @@
 
     const account = new Account(client);
 
-    async function loadDashboard() {
+    const loading = document.getElementById("loading");
+    const dashboard = document.getElementById("dashboard");
+    const authError = document.getElementById("authError");
+    const loadingStatus = document.getElementById("loadingStatus");
+    const authErrorMessage = document.getElementById("authErrorMessage");
 
+    function showAuthError(message) {
+        loading.hidden = true;
+        dashboard.hidden = true;
+        authError.hidden = false;
+        authErrorMessage.textContent = message;
+    }
+
+    async function loadDashboard() {
         console.log("Checking Appwrite session...");
 
         try {
+            loadingStatus.textContent = "Verifying your authenticated session.";
 
-            const user = await account.get();
+            // Prevent an indefinite loading screen if the browser/network
+            // request never resolves.
+            const user = await Promise.race([
+                account.get(),
+                new Promise((_, reject) =>
+                    setTimeout(
+                        () => reject(new Error(
+                            "The Appwrite session check timed out. Check your network connection and Appwrite Web platform settings."
+                        )),
+                        10000
+                    )
+                )
+            ]);
 
             console.log("Authenticated user:", user);
 
             const name = user.name || "User";
 
-            document.getElementById("userName").textContent =
-                name;
-
-            document.getElementById("profileName").textContent =
-                name;
-
-            document.getElementById("userEmail").textContent =
-                user.email;
-
-            document.getElementById("userId").textContent =
-                user.$id;
-
+            document.getElementById("userName").textContent = name;
+            document.getElementById("profileName").textContent = name;
+            document.getElementById("userEmail").textContent = user.email || "—";
+            document.getElementById("userId").textContent = user.$id;
             document.getElementById("avatar").textContent =
-                name.trim().charAt(0).toUpperCase();
+                name.trim().charAt(0).toUpperCase() || "U";
 
-            document.getElementById("loading").hidden = true;
-
-            document.getElementById("dashboard").hidden = false;
+            loading.hidden = true;
+            dashboard.hidden = false;
 
         } catch (error) {
+            console.error("Dashboard authentication error:", error);
 
-            console.error(
-                "Dashboard authentication error:",
-                error
-            );
-
-            window.location.replace("index.html");
+            const code = error?.code;
+            if (code === 401) {
+                showAuthError("Your Appwrite session is no longer active. Please sign in again.");
+            } else if (error?.message) {
+                showAuthError(error.message);
+            } else {
+                showAuthError("We could not verify your Appwrite session. Please try again.");
+            }
         }
     }
 
     document
+        .getElementById("returnLogin")
+        .addEventListener("click", () => {
+            window.location.replace("index.html");
+        });
+
+    document
         .getElementById("logoutButton")
         .addEventListener("click", async () => {
-
             try {
-
                 await account.deleteSession("current");
-
                 window.location.replace("index.html");
-
             } catch (error) {
-
                 console.error("Logout error:", error);
+                showAuthError(
+                    error?.message || "Unable to log out. Please try again."
+                );
             }
         });
 
