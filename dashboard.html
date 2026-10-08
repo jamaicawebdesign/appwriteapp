@@ -502,18 +502,41 @@
             ]);
 
             console.log("Authenticated user:", user);
+            console.log("Rendering dashboard UI...");
 
             const name = user.name || "User";
 
-            document.getElementById("userName").textContent = name;
-            document.getElementById("profileName").textContent = name;
-            document.getElementById("userEmail").textContent = user.email || "—";
-            document.getElementById("userId").textContent = user.$id;
-            document.getElementById("avatar").textContent =
+            const userName = document.getElementById("userName");
+            const profileName = document.getElementById("profileName");
+            const userEmail = document.getElementById("userEmail");
+            const userId = document.getElementById("userId");
+            const avatar = document.getElementById("avatar");
+
+            if (!userName || !profileName || !userEmail || !userId || !avatar) {
+                throw new Error("Dashboard UI elements are missing from the page.");
+            }
+
+            userName.textContent = name;
+            profileName.textContent = name;
+            userEmail.textContent = user.email || "—";
+            userId.textContent = user.$id || "—";
+            avatar.textContent =
                 name.trim().charAt(0).toUpperCase() || "U";
 
+            console.log("User information rendered.");
+
+            // Explicitly remove the HTML hidden attributes. This avoids
+            // relying only on the HTMLElement.hidden property and guarantees
+            // the authenticated dashboard becomes visible.
             loading.hidden = true;
+            loading.removeAttribute("hidden");
+            loading.style.display = "none";
+
             dashboard.hidden = false;
+            dashboard.removeAttribute("hidden");
+            dashboard.style.display = "block";
+
+            console.log("Dashboard is now visible.");
 
         } catch (error) {
             console.error("Dashboard authentication error:", error);
